@@ -4,7 +4,8 @@ services:
       context: .
       args:
         target: runtime
-    image: docker.litellm.ai/berriai/litellm:main-latest # Buggy v1.82.x # main-stable
+    # image: docker.litellm.ai/berriai/litellm:main-latest # Buggy v1.82.x # main-stable
+    image: ghcr.io/berriai/litellm:main-stable # v1.84.8-stable
     #########################################
     ## Uncomment these lines to start proxy with a config.yaml file ##
     volumes:
@@ -20,15 +21,17 @@ services:
       - "4000:4000" # Map the container port to the host, change the host port if necessary
     environment:
       # DATABASE_URL: "postgresql://llmproxy:dbpassword9090@db:5432/litellm"
+      DATABASE_URL: ${DATABASE_URL}
+      # REDIS_URL: redis://:XXX@172.17.0.24:30059
+      REDIS_URL: ${REDIS_URL}
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_INIT_PROJECT_SECRET_KEY}
       LANGFUSE_OTEL_HOST: http://172.17.0.24:3000
-      # - REDIS_URL=redis://:XXX@172.17.0.24:30059
       LITELLM_SALT_KEY: ${LITELLM_SALT_KEY}
       UI_USERNAME: ${UI_USERNAME}
       UI_PASSWORD: ${UI_PASSWORD}      
-      STORE_MODEL_IN_DB: "True" # allows adding models to proxy via UI
+      STORE_MODEL_IN_DB: "True" # allows adding models to proxy via UI      
       HEALTH_CHECK_TIMEOUT: 120 # For cold start of qwen
       LITELLM_HEALTH_CHECK_TIMEOUT: 120
       LITELLM_LOG: INFO  
@@ -44,8 +47,10 @@ services:
       timeout: 10s   # Health check command times out after 10 seconds
       retries: 3     # Retry up to 3 times if health check fails
       start_period: 40s  # Wait 40 seconds after container start before beginning health checks
+    # depends_on:
+    #   - redis-server
     networks:
-      - intranet  
+      - intranet
       
   # db:
   #   image: postgres:16
